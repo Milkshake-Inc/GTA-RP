@@ -1,0 +1,40 @@
+version: '3'
+services:
+  db:
+    image: mysql:latest
+    restart: on-failure
+    volumes:
+      - "db_data:/var/lib/mysql"
+      - "./gta_rp.sql:/docker-entrypoint-initdb.d/gta_rp.sql"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gtarp
+      MYSQL_USER: gtarp
+      MYSQL_PASSWORD: gtarp
+    ports:
+      - "3366:3306"
+
+  # build:
+  #   image: mono:latest
+  #   volumes:
+  #     - ".:/build"
+  #   command: >
+  #     bash -c "cd /build &&
+  #              nuget restore &&
+  #              msbuild 'The Godfather GM.sln'"
+  server:
+    image: milkshakeio/gtamp:latest
+    restart: on-failure
+    volumes:
+      - "./docker/settings.xml:/server/settings.xml"
+      - "./bin/Release/MySql.Data.dll:/server/MySql.Data.dll"
+      - "./bin/Release/INIFileParser.dll:/server/INIFileParser.dll"
+      - "./:/server/resources/GTA-RP"
+      - "./docker/Config.ini:/server/resources/GTA-RP/Config/Config.ini"
+    depends_on:
+      - db
+    ports:
+      - "4499:4499/udp"
+
+volumes:
+  db_data:
